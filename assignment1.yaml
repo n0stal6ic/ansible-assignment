@@ -1,0 +1,36 @@
+--- 
+- name: Assignment 1 - Hostnames & Interface Descriptions
+  hosts: routers
+  gather_facts: no
+
+  tasks:
+    - name: Configure hostname
+      ios_config:
+        lines:
+          - hostname {{ device_hostname }}
+      register: hostname_out
+
+    - name: Configure interface description
+      ios_config:
+        lines:
+          - description {{ interface_description }}
+        parents: interface Ethernet0/0
+      register: int_out
+
+    - name: Show hostname
+      ios_command:
+        commands: "show run | include hostname"
+      register: show_hostname
+
+    - name: Show interface description
+      ios_command:
+        commands: "show interface Ethernet0/0 | include Description"
+      register: show_desc
+
+    - name: Debug hostname
+      debug:
+        msg: "{{ show_hostname.stdout[0] }}"
+
+    - name: Debug interface description
+      debug:
+        msg: "{{ show_desc.stdout[0] }}"
