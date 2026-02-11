@@ -1,0 +1,43 @@
+---
+- name: Assignment 2 - Loopbacks + EIGRP
+  hosts: routers
+  gather_facts: no
+
+  vars:
+    loopbacks:
+      - { id: 0, base: "10.0.0" }
+      - { id: 1, base: "10.1.1" }
+      - { id: 2, base: "10.2.2" }
+
+  tasks:
+    - name: Configure loopback interfaces
+      ios_config:
+        lines:
+          - ip address {{ item.base }}.{{ router_id }} 255.255.255.255
+        parents: "interface Loopback{{ item.id }}"
+      loop: "{{ loopbacks }}"
+
+    - name: Configure EIGRP 100
+      ios_config:
+        lines:
+          - router eigrp 100
+          - network 10.0.0.0 0.255.255.255
+          - network 192.168.100.0 0.0.0.255
+
+    - name: Verify EIGRP neighbors
+      ios_command:
+        commands: "show ip eigrp neighbors"
+      register: eigrp_nei
+
+    - name: Debug EIGRP neighbors
+      debug:
+        msg: "{{ eigrp_nei.stdout[0] }}"
+
+    - name: Show loopback interfaces
+      ios_command:
+        commands: "show ip interface brief | include Loopback"
+      register: show_lo
+
+    - name: Debug loopback output
+      debug:
+        msg: "{{ show_lo.stdout[0] }}"

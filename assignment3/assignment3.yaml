@@ -1,0 +1,35 @@
+---
+- name: Assignment 3 - NTP, Logging, Banner, Timezone
+  hosts: routers
+  gather_facts: no
+
+  tasks:
+    - name: Configure NTP client
+      ios_config:
+        lines:
+          - ntp server 216.239.35.0
+
+    - name: Configure logging
+      ios_config:
+        lines:
+          - logging buffered 16384
+          - logging console warnings
+
+    - name: Configure timezone
+      ios_config:
+        lines:
+          - clock timezone CST -6
+
+    - name: Configure device-specific login banner
+      ios_config:
+        lines:
+          - banner login {{ banner }}
+
+    - name: Verify banner
+      ios_command:
+        commands: "show run | include banner"
+      register: bn
+
+    - name: Debug banner output
+      debug:
+        msg: "{{ bn.stdout[0] }}"
